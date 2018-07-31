@@ -2,7 +2,6 @@ const byte ledPin = 13;
 const byte relayPin1 = 10;
 const byte controlPin = A0;
 const byte buttonPin = A1;
-const unsigned long duration = 80;
 const unsigned long debounce = 1000;
 const char splashText[16] = "Spot Welder 1.0";
 const int durationLOW = 10;
@@ -12,6 +11,7 @@ volatile byte buttonState = HIGH;
 volatile unsigned long lastPress;
 volatile unsigned long startTime;
 volatile int state = 0;
+volatile int duration = 80;
 
 void clearScreen() {
   Serial.write(0xFE); // Control Character
@@ -56,8 +56,9 @@ void setup()
 
 void loop()
 {
+  duration = getDuration();
   const char durationText[16];
-  sprintf(durationText, "%i ms", getDuration());
+  sprintf(durationText, "%i ms", duration);
   sendText(durationText);
   delay(50);
   switch (state)
