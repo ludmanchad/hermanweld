@@ -4,7 +4,7 @@ const byte controlPin = A0;
 const byte buttonPin = A1;
 const unsigned long debounce = 750;
 const char splashText[16] = "Spot Welder 1.0";
-const int durationLOW = 10;
+const int durationLOW = 5;
 const int durationHIGH = 250;
 
 volatile byte buttonState = HIGH;
@@ -20,7 +20,7 @@ void clearScreen() {
 
 void enableBacklight() {
   Serial.write(0xFE); // Control Character
-  Serial.write(0x9D); // Backlight Full On
+  Serial.write(0x80); // Backlight Off
 }
 
 void sendText(const char *msg) {
@@ -30,13 +30,16 @@ void sendText(const char *msg) {
   }
 }
 
-void splashScreen() {
-  sendText(splashText);
-  delay(3000);
+void setSplashScreen() {
+  Serial.write(0xFE); // Control Character
+  Serial.write(0x0A); // Set Splash Screen
+  Serial.write(splashText); // Splash Content
 }
 
 int getDuration() {
-  int offset = (int) analogRead(controlPin)/1024*(durationLOW/durationHIGH);
+  int raw_value = analogRead(controlPin);
+  float duty = (float) raw_value / 1024;
+  int offset = (int) (duty*(durationHIGH-durationLOW));
   return durationHIGH - offset;
 }
 
@@ -49,9 +52,11 @@ void setup()
   digitalWrite(ledPin, LOW);
   lastPress = millis();
   Serial.begin(9600);
+  delay(500);
   while(!Serial) {}; // Wait for serial to begin
+  clearScreen();
   enableBacklight();
-  splashScreen();
+  setSplashScreen();
 }
 
 void loop()
@@ -59,8 +64,9 @@ void loop()
   duration = getDuration();
   const char durationText[16];
   sprintf(durationText, "%i ms", duration);
-  sendText(durationText);
-  delay(50);
+//  sendText(durationText);
+//  Serial.println(duration);
+
   switch (state)
   {
     case 0:  // waiting for button press
@@ -70,6 +76,7 @@ void loop()
         digitalWrite(ledPin, HIGH);  // turn on the LED
         digitalWrite(relayPin1, HIGH);  // turn on relay1
         startTime = millis();
+        lastPress = startTime;
         state = 1;
       }
       break;
@@ -79,7 +86,6 @@ void loop()
       {
         digitalWrite(relayPin1, LOW);  // turn off relay 1
         digitalWrite(ledPin, LOW);  // turn on the LED
-        lastPress = millis();
         state = 0;
       }
       break;
