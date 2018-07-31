@@ -1,9 +1,12 @@
 const byte ledPin = 13;
 const byte relayPin1 = 10;
+const byte controlPin = A0;
 const byte buttonPin = A1;
 const unsigned long duration = 80;
 const unsigned long debounce = 1000;
 const char splashText[16] = "Spot Welder 1.0";
+const int durationLOW = 10;
+const int durationHIGH = 250;
 
 volatile byte buttonState = HIGH;
 volatile unsigned long lastPress;
@@ -29,6 +32,12 @@ void sendText(const char *msg) {
 
 void splashScreen() {
   sendText(splashText);
+  delay(3000);
+}
+
+int getDuration() {
+  int offset = (int) analogRead(controlPin)/1024*(durationLOW/durationHIGH);
+  return durationHIGH - offset;
 }
 
 void setup()
@@ -47,7 +56,10 @@ void setup()
 
 void loop()
 {
-  
+  const char durationText[16];
+  sprintf(durationText, "%i ms", getDuration());
+  sendText(durationText);
+  delay(50);
   switch (state)
   {
     case 0:  //waiting for button press
