@@ -2,7 +2,7 @@ const byte ledPin = 13;
 const byte relayPin1 = 10;
 const byte controlPin = A0;
 const byte buttonPin = A1;
-const unsigned long debounce = 1000;
+const unsigned long debounce = 750;
 const char splashText[16] = "Spot Welder 1.0";
 const int durationLOW = 10;
 const int durationHIGH = 250;
@@ -63,14 +63,13 @@ void loop()
   delay(50);
   switch (state)
   {
-    case 0:  //waiting for button press
+    case 0:  // waiting for button press
       buttonState = digitalRead(buttonPin);
       if (buttonState == LOW && ((millis()-lastPress) > debounce))
       {
-        digitalWrite(ledPin, HIGH);  //turn on the LED
-        digitalWrite(relayPin1, HIGH);  //turn on relay1
+        digitalWrite(ledPin, HIGH);  // turn on the LED
+        digitalWrite(relayPin1, HIGH);  // turn on relay1
         startTime = millis();
-        lastPress = startTime;
         state = 1;
       }
       break;
@@ -78,8 +77,9 @@ void loop()
     case 1:
       if (millis() - startTime >= duration)  // Debounce the button press
       {
-        digitalWrite(relayPin1, LOW);  //turn off relay 1
-        digitalWrite(ledPin, LOW);  //turn on the LED
+        digitalWrite(relayPin1, LOW);  // turn off relay 1
+        digitalWrite(ledPin, LOW);  // turn on the LED
+        lastPress = millis();
         state = 0;
       }
       break;
