@@ -26,27 +26,25 @@ void setBrightness() {
   Serial.write(0x80); // Brightness
 }
 
-void sendText(const char *msg) {
-  clearScreen();
-  for(int i=0; i<strlen(msg); i++) {
-    Serial.write(msg[i]);
-  }
-}
-
 int getDuration() {
-  int raw_value = analogRead(controlPin);
+  int raw_value = averageRead(controlPin);
   float duty = (float) raw_value / 1024;
   int offset = (int) (duty*(durationHIGH-durationLOW));
   return durationLOW + offset;
 }
 
 void render() {
+  clearScreen();
   const char row1[16];
   const char row2[16];
   sprintf(row1, "Duration: %i ms ", duration);
-  sendText(row1);
+  Serial.write(0xFE);
+  Serial.write(0x80);
+  Serial.write(row1);
   sprintf(row2, "Count:    %i    ", count);
-  sendText(row2);
+  Serial.write(0xFE);
+  Serial.write(0xC0);
+  Serial.write(row2);
 }
 
 void setup()
@@ -58,6 +56,7 @@ void setup()
   digitalWrite(ledPin, LOW);
   Serial.begin(9600);
   while(!Serial) {}; // Wait for serial to begin
+  delay(500);
   setBrightness();
   clearScreen();
 }
@@ -67,7 +66,6 @@ void loop()
   duration = getDuration();
 
   render();
-
   switch (state)
   {
     case 0:  // waiting for button press
